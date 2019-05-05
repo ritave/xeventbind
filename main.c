@@ -86,7 +86,7 @@ int handle_callback(xeb_event_type event, void *data) {
             exit(EXIT_FAILURE);
             break;
         case 0: // Child
-            err = execlp(args->script_path, NULL);
+            err = execlp(args->script_path, args->script_path, NULL);
             if (err == -1) {
                 perror("Failed to open callback script\n");
                 exit(EXIT_FAILURE);

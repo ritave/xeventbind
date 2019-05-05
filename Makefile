@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-O2
+CFLAGS=-O2 -Wall
 
 LIBS=-lX11
 OBJ=main.o xeb_handler.o
