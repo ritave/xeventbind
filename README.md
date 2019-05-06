@@ -1,5 +1,5 @@
 # xeventbind
-A small utillity that runs your executable/script when interesting X11 events are fired
+A small utility that runs your executable/script when interesting X11 events are fired.
 
 ## Compilation
 Requires xlib
