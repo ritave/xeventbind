@@ -11,7 +11,7 @@ xeventbind: $(OBJ)
 	$(CC) -o $@ $^ $(LIBS) $(CFLAGS)	
 
 %.o: %.c
-	$(CC) -c -o $@ $< $(CLAGS)
+	$(CC) -c -o $@ $< $(CFLAGS)
 
 clean:
 	rm -f xeventbind *.o
