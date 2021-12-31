@@ -26,6 +26,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <assert.h>
+#include <sys/wait.h>
 
 #include "xeb_event_types.h"
 #include "xeb_handler.h"
@@ -73,6 +74,24 @@ void parse_args(int argc, char** argv, struct arguments *args) {
     args->script_path = argv[2];
 }
 
+int fork_and_exit(char *script_path) {
+    pid_t pid = fork();
+    int err;
+    switch (pid) {
+        case -1:
+            return -1;
+        case 0: // Child
+            err = execlp(script_path, script_path, NULL);
+            if (err == -1) {
+                perror("Failed to open callback script\n");
+                exit(EXIT_FAILURE);
+            }
+            break;
+        default: // Parent
+            exit(EXIT_SUCCESS);
+    }
+}
+
 int handle_callback(xeb_event_type event, void *data) {
     assert(data);
     struct arguments *args = data;
@@ -86,12 +105,24 @@ int handle_callback(xeb_event_type event, void *data) {
             exit(EXIT_FAILURE);
             break;
         case 0: // Child
-            err = execlp(args->script_path, args->script_path, NULL);
+            // Perform a "double fork", where this child process immediately
+            // exits after spawning a grandchild process. This forces the
+            // grandchild process (the one actually running the callback
+            // script) to reparent to the init process, thus avoiding defunct
+            // zombie processes whenever the callback script finishes.
+            err = fork_and_exit(args->script_path);
             if (err == -1) {
-                perror("Failed to open callback script\n");
+                perror("Failed to fork callback script\n");
                 exit(EXIT_FAILURE);
             }
             break;
+        default: // Parent
+            // Wait for the child process to immediately exit.
+            err = waitpid(pid, &err, 0);
+            if (err == -1) {
+                perror("Failed to wait for child process to finish\n");
+                exit(EXIT_FAILURE);
+            }
     }
 }
 
